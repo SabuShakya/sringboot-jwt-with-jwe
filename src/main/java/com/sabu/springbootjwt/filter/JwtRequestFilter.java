@@ -1,7 +1,10 @@
 package com.sabu.springbootjwt.filter;
 
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.sabu.springbootjwt.exception.UnauthorizedException;
 import com.sabu.springbootjwt.service.UserAuthenticationService;
-import com.sabu.springbootjwt.util.JwtUtil;
+import com.sabu.springbootjwt.util.TokenUtil;
+import lombok.SneakyThrows;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -21,14 +24,15 @@ import java.io.IOException;
 @Component
 public class JwtRequestFilter extends OncePerRequestFilter {
 
-    private final JwtUtil jwtUtil;
+    private final TokenUtil tokenUtil;
     private final UserAuthenticationService userAuthenticationService;
 
-    public JwtRequestFilter(JwtUtil jwtUtil, UserAuthenticationService userAuthenticationService) {
-        this.jwtUtil = jwtUtil;
+    public JwtRequestFilter(TokenUtil tokenUtil, UserAuthenticationService userAuthenticationService) {
+        this.tokenUtil = tokenUtil;
         this.userAuthenticationService = userAuthenticationService;
     }
 
+    @SneakyThrows
     @Override
     protected void doFilterInternal(HttpServletRequest httpServletRequest,
                                     HttpServletResponse httpServletResponse,
@@ -38,13 +42,19 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
         String jwtToken = null;
         String username = null;
+        JWTClaimsSet jwtClaimsSet = null;
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             jwtToken = authorizationHeader.replace("Bearer ", "");
-            username = jwtUtil.extractUsername(jwtToken);
+            try {
+                jwtClaimsSet = tokenUtil.parseEncryptedToken(jwtToken);
+            } catch (Exception e) {
+                throw new UnauthorizedException("Token not valid.");
+            }
+            username = jwtClaimsSet.getSubject();
 
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserDetails userDetails = userAuthenticationService.loadUserByUsername(username);
-                if (jwtUtil.validateToken(jwtToken, userDetails)) {
+                if (tokenUtil.validateToken(jwtClaimsSet, userDetails)) {
                     UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(
                             userDetails,
                             null,

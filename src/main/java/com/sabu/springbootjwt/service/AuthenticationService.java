@@ -1,7 +1,7 @@
 package com.sabu.springbootjwt.service;
 
 import com.sabu.springbootjwt.dto.UserRequestDTO;
-import com.sabu.springbootjwt.util.JwtUtil;
+import com.sabu.springbootjwt.util.TokenUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -14,14 +14,14 @@ import org.springframework.stereotype.Service;
 public class AuthenticationService {
 
     private final AuthenticationManager authenticationManager;
-    private final JwtUtil jwtUtil;
+    private final TokenUtil tokenUtil;
     private final UserAuthenticationService userAuthenticationService;
 
     @Autowired
     public AuthenticationService(AuthenticationManager authenticationManager,
-                                 JwtUtil jwtUtil, UserAuthenticationService userAuthenticationService) {
+                                 TokenUtil tokenUtil, UserAuthenticationService userAuthenticationService) {
         this.authenticationManager = authenticationManager;
-        this.jwtUtil = jwtUtil;
+        this.tokenUtil = tokenUtil;
         this.userAuthenticationService = userAuthenticationService;
     }
 
@@ -36,7 +36,7 @@ public class AuthenticationService {
             throw new Exception("Incorrect username or password.", e);
         }
         UserDetails userDetails = userAuthenticationService.loadUserByUsername(userRequestDTO.getUsername());
-        String token = "Bearer " + jwtUtil.generateToken(userDetails);
+        String token = "Bearer " + tokenUtil.generateToken(userDetails);
         return token;
     }
 
