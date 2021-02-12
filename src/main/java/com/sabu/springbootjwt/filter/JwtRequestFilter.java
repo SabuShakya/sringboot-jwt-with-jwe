@@ -5,12 +5,14 @@ import com.sabu.springbootjwt.exception.UnauthorizedException;
 import com.sabu.springbootjwt.service.UserAuthenticationService;
 import com.sabu.springbootjwt.util.TokenUtil;
 import lombok.SneakyThrows;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.servlet.HandlerExceptionResolver;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -26,6 +28,9 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
     private final TokenUtil tokenUtil;
     private final UserAuthenticationService userAuthenticationService;
+
+    @Autowired
+    private HandlerExceptionResolver handlerExceptionResolver;
 
     public JwtRequestFilter(TokenUtil tokenUtil, UserAuthenticationService userAuthenticationService) {
         this.tokenUtil = tokenUtil;
@@ -48,7 +53,9 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             try {
                 jwtClaimsSet = tokenUtil.parseEncryptedToken(jwtToken);
             } catch (Exception e) {
-                throw new UnauthorizedException("Token not valid.");
+                handlerExceptionResolver.resolveException(httpServletRequest, httpServletResponse, null,
+                        new UnauthorizedException("Token not valid."));
+                return;
             }
             username = jwtClaimsSet.getSubject();
 
