@@ -1,4 +1,4 @@
-package com.sabu.openforium.dto;
+package com.sabu.springbootjwt.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

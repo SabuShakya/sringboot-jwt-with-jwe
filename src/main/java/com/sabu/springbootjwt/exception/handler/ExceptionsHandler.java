@@ -1,6 +1,6 @@
 package com.sabu.springbootjwt.exception.handler;
 
-import com.sabu.openforium.dto.GenericResponse;
+import com.sabu.springbootjwt.dto.GenericResponse;
 import com.sabu.springbootjwt.exception.UnauthorizedException;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
